@@ -9,7 +9,10 @@ import javafx.geometry.Pos;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.ColumnConstraints;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Priority;
@@ -20,9 +23,9 @@ import javafx.stage.Window;
 
 import java.io.IOException;
 
-public class AddCategoryController {
+public class AddPersonController {
 
-    private GridPane createAddCategoryFormPane() {
+    private GridPane createAddPersonFormPane() {
         // Instantiate a new Grid Pane
         GridPane gridPane = new GridPane();
 
@@ -54,13 +57,13 @@ public class AddCategoryController {
     }
 
     private void addUIControls(GridPane gridPane) {
-        Label headerLabel = new Label("Add category");
+        Label headerLabel = new Label("Add person");
         headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         gridPane.add(headerLabel, 0,0,2,1);
         GridPane.setHalignment(headerLabel, HPos.CENTER);
         GridPane.setMargin(headerLabel, new Insets(20, 0,20,0));
 
-        Label productLabel = new Label("Category : ");
+        Label productLabel = new Label("Name : ");
         gridPane.add(productLabel, 0, 1);
 
         TextField productField = new TextField();
@@ -89,11 +92,11 @@ public class AddCategoryController {
             @Override
             public void handle(ActionEvent event) {
                 if(productField.getText().isEmpty()) {
-                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter category name");
+                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter person name");
                     return;
                 }
                 switchMainView(event);
-                showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Category was added");
+                showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Person was added");
             }
         });
 
@@ -136,7 +139,7 @@ public class AddCategoryController {
         stage.setTitle("Add category");
 
         // Create the registration form grid pane
-        GridPane gridPane = createAddCategoryFormPane();
+        GridPane gridPane = createAddPersonFormPane();
         // Add UI controls to the registration form grid pane
         addUIControls(gridPane);
         // Create a scene with registration form grid pane as the root node

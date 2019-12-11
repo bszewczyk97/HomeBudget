@@ -76,8 +76,8 @@ public class MainViewController {
 
     private void createMenu() {
         Label addOperationLabel = createLabel("Add operation", "../../resources/fxml/addOperation.fxml");
-        Label addCategoryLabel = createLabel("Add category", "../../resources/fxml/addOperation.fxml");
-        Label addPersonLabel = createLabel("Add person", "../../resources/fxml/addOperation.fxml");
+        Label addCategoryLabel = createLabel("Add category", "../../resources/fxml/addCategory.fxml");
+        Label addPersonLabel = createLabel("Add person", "../../resources/fxml/addPerson.fxml");
         Label filterLabel = createLabel("Filter", "../../resources/fxml/addOperation.fxml");
         Menu addOperation = new Menu("", addOperationLabel);
         Menu addCategory = new Menu("", addCategoryLabel);

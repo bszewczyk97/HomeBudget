@@ -24,7 +24,7 @@ import java.io.IOException;
 
 public class AddOperationController {
 
-    private GridPane createRegistrationFormPane() {
+    private GridPane createAddOperationFormPane() {
         // Instantiate a new Grid Pane
         GridPane gridPane = new GridPane();
 
@@ -132,9 +132,18 @@ public class AddOperationController {
         submitButton.setPrefHeight(40);
         submitButton.setDefaultButton(true);
         submitButton.setPrefWidth(100);
+        submitButton.setDefaultButton(true);
         gridPane.add(submitButton, 0, 9, 2, 1);
-        GridPane.setHalignment(submitButton, HPos.CENTER);
+        GridPane.setHalignment(submitButton, HPos.LEFT);
         GridPane.setMargin(submitButton, new Insets(20, 0,20,0));
+
+        Button cancelButton = new Button("Cancel");
+        cancelButton.setPrefHeight(40);
+        cancelButton.setDefaultButton(true);
+        cancelButton.setPrefWidth(100);
+        gridPane.add(cancelButton, 1, 9, 2, 1);
+        GridPane.setHalignment(cancelButton, HPos.RIGHT);
+        GridPane.setMargin(cancelButton, new Insets(20, 0,20,0));
 
         submitButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
@@ -172,23 +181,31 @@ public class AddOperationController {
                 showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Operation was added");
             }
 
-            private void switchMainView(ActionEvent event) {
-                Parent root;
-                try {
-                    FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/sample.fxml"));
-                    root = (Parent)loader.load();
-                    Stage stage = new Stage();
-                    stage.setTitle("Home Budget");
-                    stage.setScene(new Scene(root, 800, 500));
-                    stage.show();
+        });
 
-                    // Hide this current window (if this is what you want)
-                    ((Node)(event.getSource())).getScene().getWindow().hide();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
+        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                switchMainView(event);
             }
         });
+    }
+
+    private void switchMainView(ActionEvent event) {
+        Parent root;
+        try {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/sample.fxml"));
+            root = (Parent)loader.load();
+            Stage stage = new Stage();
+            stage.setTitle("Home Budget");
+            stage.setScene(new Scene(root, 800, 500));
+            stage.show();
+
+            // Hide this current window (if this is what you want)
+            ((Node)(event.getSource())).getScene().getWindow().hide();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void showAlert(Alert.AlertType alertType, Window owner, String title, String message) {
@@ -205,7 +222,7 @@ public class AddOperationController {
         stage.setTitle("Add operation");
 
         // Create the registration form grid pane
-        GridPane gridPane = createRegistrationFormPane();
+        GridPane gridPane = createAddOperationFormPane();
         // Add UI controls to the registration form grid pane
         addUIControls(gridPane);
         // Create a scene with registration form grid pane as the root node
