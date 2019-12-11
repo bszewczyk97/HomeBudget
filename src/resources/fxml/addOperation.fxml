@@ -1,48 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
+<?import javafx.scene.layout.BorderPane?>
 
-<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.controller.MainViewController">
-    <top>
-        <MenuBar fx:id="menubar" BorderPane.alignment="CENTER">
-            <menus>
-                <Menu mnemonicParsing="false" text="History">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Close" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="This month">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="Delete" />
-                    </items>
-                </Menu>
-                <Menu mnemonicParsing="false" text="Prediction">
-                    <items>
-                        <MenuItem mnemonicParsing="false" text="About" />
-                        <MenuItem fx:id="dupa" mnemonicParsing="false" text="Dupa" />
-                        <MenuItem mnemonicParsing="false" text="Dupa" />
-                    </items>
-                </Menu>
-            </menus>
-        </MenuBar>
-    </top>
-    <left>
-        <ListView fx:id="list" prefHeight="374.0" prefWidth="181.0" />
-    </left>
-    <center>
-        <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <columns>
-                <TableColumn fx:id="date" prefWidth="75.0" text="Date" />
-                <TableColumn fx:id="what" prefWidth="99.99999237060547" text="What" />
-                <TableColumn fx:id="category" prefWidth="102.4000244140625" text="Category" />
-                <TableColumn fx:id="who" prefWidth="75.2000732421875" text="Who" />
-                <TableColumn fx:id="cost" prefWidth="66.39996337890625" text="Cost" />
-            </columns>
-        </TableView>
-    </center>
+<BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.controller.AddOperationController">
 </BorderPane>
-

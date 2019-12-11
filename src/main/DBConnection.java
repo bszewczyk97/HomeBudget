@@ -1,14 +1,14 @@
 package main;
+
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
 public class DBConnection
 {
-    static final String JDBC_DRIVER = "com.mysql.cj.jdbc.Driver";
-    private static final String DB_URL = "jdbc:mysql://localhost/home_budget";
-    private static final String USER = "root" ;
-    private static final String PASS = "";
+    private static final String DB_URL = "jdbc:mysql://localhost:3307/home_bugdet";
+    private static final String USER = "budget_admin" ;
+    private static final String PASS = "admin";
     private Connection conn;
     public DBConnection() {
         conn = null;
@@ -20,7 +20,8 @@ public class DBConnection
         }
         catch(SQLException se)
         {
-            se.printStackTrace();
+
+            System.out.print("Do not connect to DB - Error:"+se);
         }
         catch(Exception e)
         {
