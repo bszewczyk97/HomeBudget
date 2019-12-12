@@ -1,12 +1,17 @@
 package main.controller;
 
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.*;
+import javafx.scene.control.MenuBar;
+import javafx.scene.control.MenuItem;
+import javafx.scene.control.TableColumn;
+import javafx.scene.control.TableView;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -66,27 +71,19 @@ public class MainViewController {
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
-//    String pattern = "MM-dd-yyyy";
-//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
-
-
-    public MainViewController() {
-
-    }
-
-    public MainViewController(String clickedItem, String itemName) {
-        this.clickedItem = clickedItem;
-        this.itemName = itemName;
-    }
-
-    ObservableList<String> items = FXCollections.observableArrayList();
-
     public void initialize() {
         FilterController filterController = new FilterController();
         gridPane = filterController.createAddOperationFormPane(gridPane);
         filterController.addUIControls(gridPane, this);
         prepareMenuItems();
         prepareTableColumns();
+        table.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Operation>() {
+            @Override
+            public void changed(ObservableValue<? extends Operation> observable, Operation oldValue, Operation newValue) {
+                removeOperation.setDisable(false);
+                addRemoveOperationPopup(removeOperation);
+            }
+        });
     }
 
     private void prepareMenuItems() {
@@ -106,8 +103,11 @@ public class MainViewController {
             } catch (IOException e) {
                 e.printStackTrace();
             }
+
             RemoveOperationController controller = loader.<RemoveOperationController>getController();
+            controller.setPreviousWindow(table.getScene().getWindow());
             controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
+
         });
     }
 
@@ -121,6 +121,7 @@ public class MainViewController {
                 e.printStackTrace();
             }
             EditOperationController controller = loader.<EditOperationController>getController();
+            controller.setPreviousWindow(table.getScene().getWindow());
             controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
         });
     }
@@ -130,7 +131,7 @@ public class MainViewController {
             Parent root;
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(resource));
-                root = (Parent)loader.load();
+                root = (Parent) loader.load();
 //                Stage stage = new Stage();
 //                stage.setTitle(name);
 //                stage.setScene(new Scene(root, width, height));
@@ -187,9 +188,9 @@ public class MainViewController {
 
             while (resultSet.next()) {
                 expens.add(Operation.builder()
-                                .date(resultSet.getDate("data").toString())
-                                .product(resultSet.getString("product"))
-                                .build());
+                        .date(resultSet.getDate("data").toString())
+                        .product(resultSet.getString("product"))
+                        .build());
             }
         } catch (SQLException e) {
             e.printStackTrace();

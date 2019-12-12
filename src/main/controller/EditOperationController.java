@@ -25,20 +25,23 @@ import main.model.Operation;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.text.SimpleDateFormat;
 
 public class EditOperationController {
     private Operation selectedOperation;
+    private Window previousWindow;
 
     DBQueryService dbQueryService = new DBQueryService();
-    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
     void setSelectedOperation(Operation selectedOperation) {
         this.selectedOperation = selectedOperation;
     }
 
+    void setPreviousWindow(Window window) {
+        this.previousWindow = window;
+    }
 
-    GridPane createAddOperationFormPane() {
+
+    GridPane createEditOperationFormPane() {
         // Instantiate a new Grid Pane
         GridPane gridPane = new GridPane();
 
@@ -61,7 +64,7 @@ public class EditOperationController {
         columnOneConstraints.setHalignment(HPos.RIGHT);
 
         // columnTwoConstraints will be applied to all the nodes placed in column two.
-        ColumnConstraints columnTwoConstrains = new ColumnConstraints(200,200, Double.MAX_VALUE);
+        ColumnConstraints columnTwoConstrains = new ColumnConstraints(200, 200, Double.MAX_VALUE);
         columnTwoConstrains.setHgrow(Priority.ALWAYS);
 
         gridPane.getColumnConstraints().addAll(columnOneConstraints, columnTwoConstrains);
@@ -72,28 +75,29 @@ public class EditOperationController {
     void addUIControls(GridPane gridPane) {
         Label headerLabel = new Label("Edit operation");
         headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
-        gridPane.add(headerLabel, 0,0,2,1);
+        gridPane.add(headerLabel, 0, 0, 2, 1);
         GridPane.setHalignment(headerLabel, HPos.CENTER);
-        GridPane.setMargin(headerLabel, new Insets(20, 0,20,0));
+        GridPane.setMargin(headerLabel, new Insets(20, 0, 20, 0));
 
         Label dateLabel = new Label("Date: ");
-        gridPane.add(dateLabel, 0,1);
+        gridPane.add(dateLabel, 0, 1);
 
         DatePicker datePicker = new DatePicker();
         datePicker.setPrefHeight(40);
-        gridPane.add(datePicker, 1,1);
+        gridPane.add(datePicker, 1, 1);
 
         Label productLabel = new Label("Product : ");
         gridPane.add(productLabel, 0, 2);
 
         TextField productField = new TextField();
+        productField.setText(selectedOperation.getProduct());
         productField.setPrefHeight(40);
         gridPane.add(productField, 1, 2);
 
         Label amountLabel = new Label("Amount : ");
         gridPane.add(amountLabel, 0, 3);
 
-        Spinner<Integer> amountSpinner = new Spinner<>(0, 10, 1, 1);
+        Spinner<Integer> amountSpinner = new Spinner<>(0, 10, selectedOperation.getAmount(), 1);
         amountSpinner.setPrefHeight(40);
         gridPane.add(amountSpinner, 1, 3);
 
@@ -101,6 +105,7 @@ public class EditOperationController {
         gridPane.add(categoryLabel, 0, 4);
 
         ComboBox categoryCombox = new ComboBox();
+        categoryCombox.setValue(selectedOperation.getCategory());
         categoryCombox.setItems(dbQueryService.getCategories());
         categoryCombox.setPrefHeight(40);
         gridPane.add(categoryCombox, 1, 4);
@@ -109,6 +114,7 @@ public class EditOperationController {
         gridPane.add(personLabel, 0, 5);
 
         ComboBox personCombox = new ComboBox();
+        categoryCombox.setValue(selectedOperation.getPerson());
         personCombox.setItems(dbQueryService.getPersons());
         personCombox.setPrefHeight(40);
         gridPane.add(personCombox, 1, 5);
@@ -117,6 +123,7 @@ public class EditOperationController {
         gridPane.add(costLabel, 0, 6);
 
         TextField costField = new TextField();
+        costField.setText(selectedOperation.getCost().toString());
         costField.setPrefHeight(40);
         gridPane.add(costField, 1, 6);
 
@@ -124,6 +131,7 @@ public class EditOperationController {
         gridPane.add(descriptionLabel, 0, 7);
 
         TextField descriptionField = new TextField();
+        descriptionField.setText(selectedOperation.getDescription());
         descriptionField.setPrefHeight(40);
         gridPane.add(descriptionField, 1, 7);
 
@@ -133,6 +141,7 @@ public class EditOperationController {
         ComboBox doneCombox = new ComboBox();
         ObservableList<String> truFalse = FXCollections.observableArrayList();
         truFalse.addAll("True", "False");
+        doneCombox.setValue(selectedOperation.isDone());
         doneCombox.setItems(truFalse);
         doneCombox.setPrefHeight(40);
         gridPane.add(doneCombox, 1, 8);
@@ -144,45 +153,46 @@ public class EditOperationController {
         submitButton.setDefaultButton(true);
         gridPane.add(submitButton, 0, 9, 2, 1);
         GridPane.setHalignment(submitButton, HPos.LEFT);
-        GridPane.setMargin(submitButton, new Insets(20, 0,20,0));
+        GridPane.setMargin(submitButton, new Insets(20, 0, 20, 0));
 
         submitButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(selectedOperation==null) {
+                if (selectedOperation == null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Editing Error!", "You need to chose any operation");
                     return;
                 }
-                if(datePicker.getValue()==null) {
+                if (datePicker.getValue() == null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter a date");
                     return;
                 }
-                if(productField.getText().isEmpty()) {
+                if (productField.getText().isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter product name");
                     return;
                 }
-                if(amountSpinner.getValue()==0) {
+                if (amountSpinner.getValue() == 0) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter amount more than 0");
                     return;
                 }
-                if(categoryCombox.getValue()==null) {
+                if (categoryCombox.getValue() == null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter category");
                     return;
                 }
-                if(personCombox.getSelectionModel().getSelectedItem()==null) {
+                if (personCombox.getSelectionModel().getSelectedItem() == null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter person");
                     return;
                 }
-                if(costField.getText().isEmpty() || !costField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$")) {
+                if (costField.getText().isEmpty() || !costField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$")) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter cost in numbers");
                     return;
                 }
 
-                if(doneCombox.getSelectionModel().getSelectedItem()==null) {
+                if (doneCombox.getSelectionModel().getSelectedItem() == null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter done value");
                     return;
                 }
                 Operation operation = Operation.builder()
+                        .id(selectedOperation.getId())
                         .date(datePicker.getValue().toString())
                         .product(productField.getText())
                         .amount(amountSpinner.getValue())
@@ -192,30 +202,31 @@ public class EditOperationController {
                         .description(descriptionField.getText())
                         .done(Boolean.parseBoolean(doneCombox.getValue().toString()))
                         .build();
-                addOperation(operation, gridPane, event);
+                editOperation(operation, gridPane, event);
             }
 
         });
 
     }
 
-    private void addOperation(Operation operation, GridPane gridPane, ActionEvent event) {
+    private void editOperation(Operation operation, GridPane gridPane, ActionEvent event) {
         DBConnection con = new DBConnection();
         PreparedStatement preparedStatement = null;
         int resultSet;
-        String sql = "{call editOperation(?,?,?,?,?,?,?,?)}";
+        String sql = "{call editOperation(?,?,?,?,?,?,?,?,?)}";
 
         try {
             preparedStatement = con.getConn().prepareStatement(sql);
 
-            preparedStatement.setString(1, operation.getDate());
-            preparedStatement.setString(2, operation.getProduct());
-            preparedStatement.setInt(3, operation.getAmount());
-            preparedStatement.setString(4, operation.getCategory());
-            preparedStatement.setString(5, operation.getPerson());
-            preparedStatement.setDouble(6, operation.getCost());
-            preparedStatement.setString(7, operation.getDescription());
-            preparedStatement.setBoolean(8, operation.isDone());
+            preparedStatement.setInt(1, operation.getId());
+            preparedStatement.setString(2, operation.getDate());
+            preparedStatement.setString(3, operation.getProduct());
+            preparedStatement.setInt(4, operation.getAmount());
+            preparedStatement.setString(5, operation.getCategory());
+            preparedStatement.setString(6, operation.getPerson());
+            preparedStatement.setDouble(7, operation.getCost());
+            preparedStatement.setString(8, operation.getDescription());
+            preparedStatement.setBoolean(9, operation.isDone());
 
             resultSet = preparedStatement.executeUpdate();
             switchMainView(event);
@@ -236,14 +247,14 @@ public class EditOperationController {
         Parent root;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/sample.fxml"));
-            root = (Parent)loader.load();
+            root = (Parent) loader.load();
             Stage stage = new Stage();
             stage.setTitle("Home Budget");
             stage.setScene(new Scene(root, 800, 500));
             stage.show();
 
             // Hide this current window (if this is what you want)
-            ((Node)(event.getSource())).getScene().getWindow().hide();
+            ((Node) (event.getSource())).getScene().getWindow().hide();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -258,12 +269,16 @@ public class EditOperationController {
         alert.show();
     }
 
-    public void initialize(){
+    public void initialize() {
+        if (selectedOperation == null) {
+            showAlert(Alert.AlertType.ERROR, previousWindow, "Editing Error!", "You need to chose any operation");
+            return;
+        }
         Stage stage = new Stage();
         stage.setTitle("Add operation");
 
         // Create the registration form grid pane
-        GridPane gridPane = createAddOperationFormPane();
+        GridPane gridPane = createEditOperationFormPane();
         // Add UI controls to the registration form grid pane
         addUIControls(gridPane);
         // Create a scene with registration form grid pane as the root node
