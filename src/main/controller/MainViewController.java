@@ -1,27 +1,24 @@
 package main.controller;
 
-import com.sun.org.apache.xpath.internal.operations.Bool;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.scene.input.MouseEvent;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
+import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
-import javafx.stage.Window;
 import main.DBConnection;
-import main.model.Expense;
+import main.model.Operation;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
@@ -30,27 +27,47 @@ public class MainViewController {
     String clickedItem;
     String itemName;
 
-    public MenuItem dupa;
+    public MenuItem addOperation;
+    public MenuItem addCategory;
+    public MenuItem addPerson;
+
+    public MenuItem editOperation;
+
+    public MenuItem removeOperation;
+
+    public MenuItem last7Days;
+    public MenuItem thisMonth;
+    public MenuItem lastMonth;
+
+    public MenuItem predictionWeek;
+    public MenuItem predictionMonth;
+    public MenuItem predictionYear;
+
     public MenuBar menubar;
-    public ListView<String> list;
+    public GridPane gridPane;
     @FXML
-    public TableView<Expense> table;
+    public TableView<Operation> table;
     @FXML
-    TableColumn<Expense, Date> date;
+    TableColumn<Operation, Date> date;
     @FXML
-    TableColumn<Expense, String> product;
+    TableColumn<Operation, String> product;
     @FXML
-    TableColumn<Expense, Integer> amount;
+    TableColumn<Operation, Integer> amount;
     @FXML
-    TableColumn<Expense, String> category;
+    TableColumn<Operation, String> category;
     @FXML
-    TableColumn<Expense, String> person;
+    TableColumn<Operation, String> person;
     @FXML
-    TableColumn<Expense, Double> cost;
+    TableColumn<Operation, Double> cost;
     @FXML
-    TableColumn<Expense, String> description;
+    TableColumn<Operation, String> description;
     @FXML
-    TableColumn<Expense, Boolean> done;
+    TableColumn<Operation, Boolean> done;
+
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+//    String pattern = "MM-dd-yyyy";
+//    SimpleDateFormat simpleDateFormat = new SimpleDateFormat(pattern);
 
 
     public MainViewController() {
@@ -65,34 +82,51 @@ public class MainViewController {
     ObservableList<String> items = FXCollections.observableArrayList();
 
     public void initialize() {
-        dupa.setOnAction(e -> {
-            System.out.println("Program will now display line numbers");
-        });
-
-        createMenu();
-        createCategoryList();
+        FilterController filterController = new FilterController();
+        gridPane = filterController.createAddOperationFormPane(gridPane);
+        filterController.addUIControls(gridPane, this);
+        prepareMenuItems();
         prepareTableColumns();
     }
 
-    private void createMenu() {
-        Label addOperationLabel = createLabel("Add operation", "../../resources/fxml/addOperation.fxml");
-        Label addCategoryLabel = createLabel("Add category", "../../resources/fxml/addCategory.fxml");
-        Label addPersonLabel = createLabel("Add person", "../../resources/fxml/addPerson.fxml");
-        Label filterLabel = createLabel("Filter", "../../resources/fxml/addOperation.fxml");
-        Menu addOperation = new Menu("", addOperationLabel);
-        Menu addCategory = new Menu("", addCategoryLabel);
-        Menu addPerson = new Menu("", addPersonLabel);
-        Menu filter = new Menu("", filterLabel);
-        menubar.getMenus().add(addOperation);
-        menubar.getMenus().add(addCategory);
-        menubar.getMenus().add(addPerson);
-        menubar.getMenus().add(filter);
+    private void prepareMenuItems() {
+        addEventHandling(addOperation, "../../resources/fxml/addOperation.fxml");
+        addEventHandling(addCategory, "../../resources/fxml/addCategory.fxml");
+        addEventHandling(addPerson, "../../resources/fxml/addPerson.fxml");
+        addRemoveOperationPopup(removeOperation);
+        addEditOperationPopup(editOperation);
     }
 
-    private Label createLabel(String name, String resource) {
-        Label label = new Label(name);
-//        addOperation.setOnMouseClicked(mouseEvent->{AddOperationController.display()});
-        label.setOnMouseClicked((event) -> {
+    private void addRemoveOperationPopup(MenuItem menuItem) {
+        menuItem.setOnAction((event) -> {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/removeOperation.fxml"));
+            Stage stage = new Stage();
+            try {
+                stage.setScene(new Scene((Pane) loader.load()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            RemoveOperationController controller = loader.<RemoveOperationController>getController();
+            controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
+        });
+    }
+
+    private void addEditOperationPopup(MenuItem menuItem) {
+        menuItem.setOnAction((event) -> {
+            FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/editOperation.fxml"));
+            Stage stage = new Stage();
+            try {
+                stage.setScene(new Scene((Pane) loader.load()));
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            EditOperationController controller = loader.<EditOperationController>getController();
+            controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
+        });
+    }
+
+    private void addEventHandling(MenuItem menuItem, String resource) {
+        menuItem.setOnAction((event) -> {
             Parent root;
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(resource));
@@ -103,12 +137,11 @@ public class MainViewController {
 //                stage.show();
 
                 // Hide this current window (if this is what you want)
-                ((Node)(event.getSource())).getScene().getWindow().hide();
+                table.getScene().getWindow().hide();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
-        return label;
     }
 
     private void prepareTableColumns() {
@@ -125,26 +158,26 @@ public class MainViewController {
 
 
     private void loadData() {
-        ObservableList<Expense> test = getExpenses();
-        this.table.setItems(test);
+        ObservableList<Operation> expens = getExpenses();
+        this.table.setItems(expens);
     }
 
-    public ObservableList<Expense> getExpenses() {
+    private ObservableList<Operation> getExpenses() {
         DBConnection con = new DBConnection();
 
-        ObservableList<Expense> expenses = FXCollections.observableArrayList();
-//        expenses.addAll(isAdded("chleb", con));
-        expenses.add(createExpense());
-        expenses.add(createExpense());
-        expenses.add(createExpense());
-        return expenses;
+        ObservableList<Operation> expens = FXCollections.observableArrayList();
+//        expens.addAll(isAdded("chleb", con));
+        expens.add(createExpense());
+        expens.add(createExpense());
+        expens.add(createExpense());
+        return expens;
     }
 
-    private List<Expense> isAdded(String product, DBConnection con) {
+    private List<Operation> isAdded(String product, DBConnection con) {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
         String sql = "select * from operation where what=?";
-        List<Expense> expenses = Collections.emptyList();
+        List<Operation> expens = Collections.emptyList();
 
 
         try {
@@ -153,8 +186,8 @@ public class MainViewController {
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
-                expenses.add(Expense.builder()
-                                .date(resultSet.getDate("data"))
+                expens.add(Operation.builder()
+                                .date(resultSet.getDate("data").toString())
                                 .product(resultSet.getString("product"))
                                 .build());
             }
@@ -162,12 +195,12 @@ public class MainViewController {
             e.printStackTrace();
         }
 
-        return expenses;
+        return expens;
     }
 
-    private Expense createExpense() {
-        return Expense.builder()
-                .date(new Date())
+    private Operation createExpense() {
+        return Operation.builder()
+                .date(formatter.format(new Date()))
                 .product("masło")
                 .amount(2)
                 .category("Shopping")
@@ -176,18 +209,6 @@ public class MainViewController {
                 .description("")
                 .done(Boolean.TRUE)
                 .build();
-    }
-
-    private void createCategoryList() {
-        items.addAll("Shopping", "Sport", "Restaurants", "Health", "Entertainment", "Transportation", "Salary", "Travel", "Gifts");
-        list.setItems(items);
-        list.setOnMouseClicked(new EventHandler<MouseEvent>() {
-
-            @Override
-            public void handle(MouseEvent event) {
-                new main.controller.Category(list.getSelectionModel().getSelectedItem());
-            }
-        });
     }
 
 }

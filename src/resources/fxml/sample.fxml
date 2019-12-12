@@ -1,40 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.ListView?>
 <?import javafx.scene.control.Menu?>
 <?import javafx.scene.control.MenuBar?>
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.TableColumn?>
 <?import javafx.scene.control.TableView?>
 <?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
 
 <BorderPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="500.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="main.controller.MainViewController">
    <top>
       <MenuBar fx:id="menubar" prefHeight="24.0" prefWidth="600.0" BorderPane.alignment="CENTER">
         <menus>
-          <Menu mnemonicParsing="false" text="History">
+            <Menu fx:id="addMenu" mnemonicParsing="false" text="Add">
+               <items>
+                  <MenuItem fx:id="addOperation" mnemonicParsing="false" text="Operation" />
+                  <MenuItem fx:id="addCategory" mnemonicParsing="false" text="Category" />
+                  <MenuItem fx:id="addPerson" mnemonicParsing="false" text="Person" />
+               </items>
+            </Menu>
+            <Menu fx:id="removeMenu1" mnemonicParsing="false" text="Edit">
+               <items>
+                  <MenuItem fx:id="editOperation" mnemonicParsing="false" text="Operation" />
+               </items>
+            </Menu>
+            <Menu fx:id="removeMenu" mnemonicParsing="false" text="Remove">
+               <items>
+                  <MenuItem fx:id="removeOperation" mnemonicParsing="false" text="Operation" />
+               </items>
+            </Menu>
+          <Menu mnemonicParsing="false" text="Time Range">
             <items>
-              <MenuItem mnemonicParsing="false" text="Close" />
+                  <MenuItem fx:id="last7Days" mnemonicParsing="false" text="Last 7 days" />
+                  <MenuItem fx:id="thisMonth" mnemonicParsing="false" text="This month" />
+              <MenuItem fx:id="lastMonth" mnemonicParsing="false" text="Last month" />
             </items>
           </Menu>
-          <Menu mnemonicParsing="false" text="This month">
+          <Menu mnemonicParsing="false" text="Prediction for">
             <items>
-              <MenuItem mnemonicParsing="false" text="Delete" />
-            </items>
-          </Menu>
-          <Menu mnemonicParsing="false" text="Prediction">
-            <items>
-              <MenuItem mnemonicParsing="false" text="About" />
-              <MenuItem fx:id="dupa" mnemonicParsing="false" text="Dupa" />
-              <MenuItem mnemonicParsing="false" text="Dupa" />
+              <MenuItem fx:id="predictionWeek" mnemonicParsing="false" text="Week" />
+              <MenuItem fx:id="predictionMonth" mnemonicParsing="false" text="Month" />
+              <MenuItem fx:id="predictionYear" mnemonicParsing="false" text="Year" />
             </items>
           </Menu>
         </menus>
       </MenuBar>
    </top>
-   <left>
-      <ListView fx:id="list" prefHeight="374.0" prefWidth="122.0" />
-   </left>
    <center>
       <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
         <columns>
@@ -49,4 +62,17 @@
         </columns>
       </TableView>
    </center>
+   <left>
+      <GridPane fx:id="gridPane" BorderPane.alignment="CENTER">
+        <columnConstraints>
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+          <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" prefWidth="100.0" />
+        </columnConstraints>
+        <rowConstraints>
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+          <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+        </rowConstraints>
+      </GridPane>
+   </left>
 </BorderPane>

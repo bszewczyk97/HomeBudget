@@ -20,8 +20,14 @@ import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.stage.Stage;
 import javafx.stage.Window;
+import main.DBConnection;
+import main.model.Category;
+import main.model.Person;
 
 import java.io.IOException;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class AddPersonController {
 
@@ -63,14 +69,13 @@ public class AddPersonController {
         GridPane.setHalignment(headerLabel, HPos.CENTER);
         GridPane.setMargin(headerLabel, new Insets(20, 0,20,0));
 
-        Label productLabel = new Label("Name : ");
-        gridPane.add(productLabel, 0, 1);
+        Label personLabel = new Label("Name : ");
+        gridPane.add(personLabel, 0, 1);
 
-        TextField productField = new TextField();
-        productField.setPrefHeight(40);
-        gridPane.add(productField, 1, 1);
+        TextField personField = new TextField();
+        personField.setPrefHeight(40);
+        gridPane.add(personField, 1, 1);
 
-        // Add Submit Button
         Button submitButton = new Button("Submit");
         submitButton.setPrefHeight(40);
         submitButton.setDefaultButton(true);
@@ -91,12 +96,12 @@ public class AddPersonController {
         submitButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(productField.getText().isEmpty()) {
+                if(personField.getText().isEmpty()) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter person name");
                     return;
                 }
-                switchMainView(event);
-                showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Person was added");
+                Person person = new Person(personField.getText());
+                addPerson(person, gridPane, event);
             }
         });
 
@@ -106,6 +111,65 @@ public class AddPersonController {
                 switchMainView(event);
             }
         });
+    }
+
+    private void addPerson(Person person, GridPane gridPane, ActionEvent event) {
+        DBConnection con = new DBConnection();
+        String err = "";
+        PreparedStatement preparedStatement = null;
+        int resultSet;
+        String sql = "{call addPerson(?)}";
+
+        try {
+            preparedStatement = con.getConn().prepareStatement(sql);
+
+            if (ifThisPersonExists(person.getPersonName(), con)) {
+                err += "Given person already exists";
+                showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", err);
+
+            } else {
+                preparedStatement.setString(1, person.getPersonName());
+                resultSet = preparedStatement.executeUpdate();
+                switchMainView(event);
+                showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Person was added");
+            }
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            con.close();
+        } finally {
+            con.close();
+        }
+    }
+
+    private boolean ifThisPersonExists(String personName, DBConnection con)
+    {
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+        String sql="select * from person where name=?";
+
+
+        try {
+            preparedStatement = con.getConn().prepareStatement(sql);
+            preparedStatement.setString(1, personName);
+            resultSet = preparedStatement.executeQuery();
+
+            if(resultSet.next())
+            {
+                return true;
+            }
+            else
+            {
+                return false;
+            }
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
     }
 
     private void switchMainView(ActionEvent event) {

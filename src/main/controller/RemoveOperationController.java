@@ -22,13 +22,19 @@ import javafx.stage.Stage;
 import javafx.stage.Window;
 import main.DBConnection;
 import main.model.Category;
+import main.model.Operation;
 
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public class AddCategoryController {
+public class RemoveOperationController {
+    private Operation selectedOperation;
+
+    void setSelectedOperation(Operation selectedOperation) {
+        this.selectedOperation = selectedOperation;
+    }
 
     private GridPane createAddCategoryFormPane() {
         // Instantiate a new Grid Pane
@@ -62,20 +68,13 @@ public class AddCategoryController {
     }
 
     private void addUIControls(GridPane gridPane) {
-        Label headerLabel = new Label("Add category");
+        Label headerLabel = new Label("Do you want to remove selected operation?");
         headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         gridPane.add(headerLabel, 0,0,2,1);
         GridPane.setHalignment(headerLabel, HPos.CENTER);
         GridPane.setMargin(headerLabel, new Insets(20, 0,20,0));
 
-        Label categorylabel = new Label("Category : ");
-        gridPane.add(categorylabel, 0, 1);
-
-        TextField categoryField = new TextField();
-        categoryField.setPrefHeight(40);
-        gridPane.add(categoryField, 1, 1);
-
-        Button submitButton = new Button("Submit");
+        Button submitButton = new Button("Remove");
         submitButton.setPrefHeight(40);
         submitButton.setDefaultButton(true);
         submitButton.setPrefWidth(100);
@@ -84,56 +83,34 @@ public class AddCategoryController {
         GridPane.setHalignment(submitButton, HPos.LEFT);
         GridPane.setMargin(submitButton, new Insets(20, 0,20,0));
 
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefHeight(40);
-        cancelButton.setDefaultButton(true);
-        cancelButton.setPrefWidth(100);
-        gridPane.add(cancelButton, 1, 2, 2, 1);
-        GridPane.setHalignment(cancelButton, HPos.RIGHT);
-        GridPane.setMargin(cancelButton, new Insets(20, 0,20,0));
-
         submitButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(categoryField.getText().isEmpty()) {
-                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter category name");
+                if(selectedOperation==null) {
+                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Removing Error!", "You need to chose any operation");
                     return;
                 }
-                Category category = new Category(categoryField.getText());
-                addCategory(category, gridPane, event);
+                Operation operation = selectedOperation;
+                removeOperation(operation, gridPane, event);
             }
         });
 
-        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                switchMainView(event);
-            }
-        });
     }
 
-    private void addCategory(Category category, GridPane gridPane, ActionEvent event) {
+    private void removeOperation(Operation operation, GridPane gridPane, ActionEvent event) {
         DBConnection con = new DBConnection();
-        String err = "";
         PreparedStatement preparedStatement = null;
         int resultSet;
-        String sql = "{call addCategory(?)}";
+        String sql = "{call removeOperation(?)}";
 
         try {
             preparedStatement = con.getConn().prepareStatement(sql);
 
-            if (ifThisCategoryExists(category.getCategoryName(), con)) {
-                err += "Given category already exists";
-                showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", err);
+            preparedStatement.setInt(1, operation.getId());
 
-            } else {
-                preparedStatement.setString(1, category.getCategoryName());
-
-                resultSet = preparedStatement.executeUpdate();
-                switchMainView(event);
-                showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Adding Successful!", "Category was added");
-
-            }
+            resultSet = preparedStatement.executeUpdate();
+            switchMainView(event);
+            showAlert(Alert.AlertType.CONFIRMATION, gridPane.getScene().getWindow(), "Removing Successful!", "Operation was removed");
 
         } catch (SQLException ex) {
             System.out.println(ex);
@@ -145,33 +122,6 @@ public class AddCategoryController {
             con.close();
         }
 
-    }
-
-    private boolean ifThisCategoryExists(String categoryName, DBConnection con)
-    {
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
-        String sql="select * from category where name=?";
-
-
-        try {
-            preparedStatement = con.getConn().prepareStatement(sql);
-            preparedStatement.setString(1, categoryName);
-            resultSet = preparedStatement.executeQuery();
-
-            if(resultSet.next())
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return false;
     }
 
     private void switchMainView(ActionEvent event) {
@@ -202,7 +152,7 @@ public class AddCategoryController {
 
     public void initialize(){
         Stage stage = new Stage();
-        stage.setTitle("Add category");
+        stage.setTitle("Remove operation");
 
         // Create the registration form grid pane
         GridPane gridPane = createAddCategoryFormPane();

@@ -1,9 +1,11 @@
 package main.model;
 
+
 import java.util.Date;
 
-public class Expense {
-    private Date date;
+public class Operation {
+    private Integer id;
+    private String date;
     private String product;
     private Integer amount;
     private String  category;
@@ -12,11 +14,19 @@ public class Expense {
     private String description;
     private Boolean done;
 
-    public Date getDate() {
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
+
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
     }
 
@@ -68,7 +78,7 @@ public class Expense {
         this.description = description;
     }
 
-    public Boolean getDone() {
+    public Boolean isDone() {
         return done;
     }
 
@@ -81,7 +91,8 @@ public class Expense {
     }
 
     public static final class Builder {
-        private Date date;
+        private Integer id;
+        private String date;
         private String product;
         private Integer amount;
         private String category;
@@ -90,7 +101,12 @@ public class Expense {
         private String description;
         private Boolean done;
 
-        public Builder date(Date date) {
+        public Builder id(Integer id) {
+            this.id = id;
+            return this;
+        }
+
+        public Builder date(String date) {
             this.date = date;
             return this;
         }
@@ -131,17 +147,18 @@ public class Expense {
             return this;
         }
 
-        public Expense build() {
-            Expense expense = new Expense();
-            expense.date = this.date;
-            expense.product = this.product;
-            expense.amount = this.amount;
-            expense.category = this.category;
-            expense.person = this.person;
-            expense.cost = this.cost;
-            expense.description = this.description;
-            expense.done = this.done;
-            return expense;
+        public Operation build() {
+            Operation operation = new Operation();
+            operation.id = this.id;
+            operation.date = this.date;
+            operation.product = this.product;
+            operation.amount = this.amount;
+            operation.category = this.category;
+            operation.person = this.person;
+            operation.cost = this.cost;
+            operation.description = this.description;
+            operation.done = this.done;
+            return operation;
         }
 
     }

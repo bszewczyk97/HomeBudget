@@ -27,9 +27,15 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 
-public class AddOperationController {
+public class EditOperationController {
+    private Operation selectedOperation;
+
     DBQueryService dbQueryService = new DBQueryService();
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+    void setSelectedOperation(Operation selectedOperation) {
+        this.selectedOperation = selectedOperation;
+    }
 
 
     GridPane createAddOperationFormPane() {
@@ -64,7 +70,7 @@ public class AddOperationController {
     }
 
     void addUIControls(GridPane gridPane) {
-        Label headerLabel = new Label("Add operation");
+        Label headerLabel = new Label("Edit operation");
         headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
         gridPane.add(headerLabel, 0,0,2,1);
         GridPane.setHalignment(headerLabel, HPos.CENTER);
@@ -140,17 +146,13 @@ public class AddOperationController {
         GridPane.setHalignment(submitButton, HPos.LEFT);
         GridPane.setMargin(submitButton, new Insets(20, 0,20,0));
 
-        Button cancelButton = new Button("Cancel");
-        cancelButton.setPrefHeight(40);
-        cancelButton.setDefaultButton(true);
-        cancelButton.setPrefWidth(100);
-        gridPane.add(cancelButton, 1, 9, 2, 1);
-        GridPane.setHalignment(cancelButton, HPos.RIGHT);
-        GridPane.setMargin(cancelButton, new Insets(20, 0,20,0));
-
         submitButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
+                if(selectedOperation==null) {
+                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Editing Error!", "You need to chose any operation");
+                    return;
+                }
                 if(datePicker.getValue()==null) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter a date");
                     return;
@@ -195,19 +197,13 @@ public class AddOperationController {
 
         });
 
-        cancelButton.setOnAction(new EventHandler<ActionEvent>() {
-            @Override
-            public void handle(ActionEvent event) {
-                switchMainView(event);
-            }
-        });
     }
 
     private void addOperation(Operation operation, GridPane gridPane, ActionEvent event) {
         DBConnection con = new DBConnection();
         PreparedStatement preparedStatement = null;
         int resultSet;
-        String sql = "{call addOperation(?,?,?,?,?,?,?,?)}";
+        String sql = "{call editOperation(?,?,?,?,?,?,?,?)}";
 
         try {
             preparedStatement = con.getConn().prepareStatement(sql);
