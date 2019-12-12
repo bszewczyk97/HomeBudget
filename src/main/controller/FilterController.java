@@ -13,6 +13,11 @@ import javafx.scene.layout.GridPane;
 import javafx.stage.Window;
 import main.DBConnection;
 import main.model.Operation;
+import main.model.OperationFilter;
+
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 
 public class FilterController {
     DBQueryService dbQueryService = new DBQueryService();
@@ -29,14 +34,6 @@ public class FilterController {
 
         // Set the vertical gap between rows
         gridPane.setVgap(10);
-
-        // Add Column Constraints
-
-        // columnOneConstraints will be applied to all the nodes placed in column one.
-        ColumnConstraints columnOneConstraints = new ColumnConstraints(100, 100, Double.MAX_VALUE);
-        columnOneConstraints.setHalignment(HPos.CENTER);
-
-        gridPane.getColumnConstraints().addAll(columnOneConstraints);
 
         return gridPane;
     }
@@ -119,24 +116,27 @@ public class FilterController {
         filterButton.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
-                if(startDatePicker.getValue()==null) {
-                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter a date");
-                    return;
-                }
-                if(startDatePicker.getValue()==null) {
-                    showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter a date");
-                    return;
-                }
-                if(!minCostField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$")) {
+                if(!(minCostField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$") || minCostField.getText().matches("^$"))) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter min cost in numbers");
                     return;
                 }
-                if(!maxCostField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$")) {
+                if(!(maxCostField.getText().matches("^(-?)(0|([1-9][0-9]*))(\\.[0-9]+)?$")|| minCostField.getText().matches("^$"))) {
                     showAlert(Alert.AlertType.ERROR, gridPane.getScene().getWindow(), "Form Error!", "Please enter max cost in numbers");
                     return;
                 }
-                ObservableList<Operation> expenses = getFilteredExpenses();
-                mainViewController.table.setItems(expenses);
+                OperationFilter operationFilter = OperationFilter.builder()
+                        .startDate(startDatePicker.getValue().toString())
+                        .endDate(endDatePicker.getValue().toString())
+                        .product(productField.getText())
+                        .category(categoryCombox.getValue().toString())
+                        .person(personCombox.getValue().toString())
+                        .minCost(Double.parseDouble(minCostField.getText()))
+                        .maxCost(Double.parseDouble(maxCostField.getText()))
+                        .description(descriptionField.getText())
+                        .done(Boolean.parseBoolean(doneCombox.getValue().toString()))
+                        .build();
+                ObservableList<Operation> filteredOperations = getFilteredOperations(operationFilter);
+                mainViewController.table.setItems(filteredOperations);
             }
         });
     }
@@ -150,12 +150,106 @@ public class FilterController {
         alert.show();
     }
 
-    private ObservableList<Operation> getFilteredExpenses() {
+    private ObservableList<Operation> getFilteredOperations(OperationFilter operationFilter) {
         DBConnection con = new DBConnection();
+        ObservableList<Operation> operations = FXCollections.observableArrayList();
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
+        String sql = "{call filterOperations(?,?,?,?,?,?,?,?,?)}";
 
-        ObservableList<Operation> expenses = FXCollections.observableArrayList();
-//        expens.addAll(isAdded("chleb", con));
-        return expenses;
+        try {
+            preparedStatement = con.getConn().prepareStatement(sql);
+
+            preparedStatement.setString(1, operationFilter.getStartDate());
+            preparedStatement.setString(2, operationFilter.getEndDate());
+            preparedStatement.setString(3, operationFilter.getProduct());
+            preparedStatement.setInt(4, getCategoryId(operationFilter.getCategory()));
+            preparedStatement.setInt(5, getPersonId(operationFilter.getPerson()));
+            preparedStatement.setDouble(6, operationFilter.getMinCost());
+            preparedStatement.setDouble(7, operationFilter.getMaxCost());
+            preparedStatement.setString(8, operationFilter.getDescription());
+            preparedStatement.setBoolean(9, operationFilter.isDone());
+
+            resultSet = preparedStatement.executeQuery();
+            while (resultSet.next()) {
+                operations.add(Operation.builder()
+                        .id(resultSet.getInt("id"))
+                        .date(resultSet.getString("date"))
+                        .product(resultSet.getString("product"))
+                        .amount(resultSet.getInt("amount"))
+                        .category(resultSet.getString("category"))
+                        .person(resultSet.getString("person"))
+                        .cost(resultSet.getDouble("cost"))
+                        .description(resultSet.getString("description"))
+                        .done(resultSet.getBoolean("done"))
+                        .build());
+            }
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            con.close();
+        } finally {
+            con.close();
+        }
+
+        return operations;
+    }
+
+    Integer getCategoryId(String categoryName) {
+        DBConnection con = new DBConnection();
+        Integer categoryId=0;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
+        String sql = "select category.id from category where categorty.name=?";
+
+        try {
+            preparedStatement = con.getConn().prepareStatement(sql);
+            preparedStatement.setString(1, categoryName);
+
+            resultSet = preparedStatement.executeQuery();
+            categoryId = resultSet.getInt("id");
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            con.close();
+        } finally {
+            con.close();
+        }
+
+        return categoryId;
+    }
+
+    Integer getPersonId(String personName) {
+        DBConnection con = new DBConnection();
+        Integer personId=0;
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet;
+        String sql = "select person.id from person where person.name=?";
+
+        try {
+            preparedStatement = con.getConn().prepareStatement(sql);
+            preparedStatement.setString(1, personName);
+
+            resultSet = preparedStatement.executeQuery();
+            personId = resultSet.getInt("id");
+
+        } catch (SQLException ex) {
+            System.out.println(ex);
+            con.close();
+        } catch (Exception e) {
+            System.out.println(e);
+            con.close();
+        } finally {
+            con.close();
+        }
+
+        return personId;
     }
 
 }
