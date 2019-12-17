@@ -25,6 +25,8 @@ import main.model.Operation;
 import java.io.IOException;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 
 public class EditOperationController {
     private Operation selectedOperation;
@@ -34,6 +36,22 @@ public class EditOperationController {
 
     void setSelectedOperation(Operation selectedOperation) {
         this.selectedOperation = selectedOperation;
+        Stage stage = new Stage();
+        stage.setTitle("Edit operation");
+        if (selectedOperation == null) {
+            showAlert(Alert.AlertType.ERROR, previousWindow, "Editing Error!", "You need to chose any operation");
+            return;
+        }
+        // Create the registration form grid pane
+        GridPane gridPane = createEditOperationFormPane();
+        // Add UI controls to the registration form grid pane
+        addUIControls(gridPane);
+        // Create a scene with registration form grid pane as the root node
+        Scene scene = new Scene(gridPane, 800, 500);
+        // Set the scene in primary stage
+        stage.setScene(scene);
+
+        stage.show();
     }
 
     void setPreviousWindow(Window window) {
@@ -72,6 +90,12 @@ public class EditOperationController {
         return gridPane;
     }
 
+    public static final LocalDate LOCAL_DATE(String dateString) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        LocalDate localDate = LocalDate.parse(dateString, formatter);
+        return localDate;
+    }
+
     void addUIControls(GridPane gridPane) {
         Label headerLabel = new Label("Edit operation");
         headerLabel.setFont(Font.font("Arial", FontWeight.BOLD, 24));
@@ -83,6 +107,7 @@ public class EditOperationController {
         gridPane.add(dateLabel, 0, 1);
 
         DatePicker datePicker = new DatePicker();
+        datePicker.setValue(LOCAL_DATE(selectedOperation.getDate()));
         datePicker.setPrefHeight(40);
         gridPane.add(datePicker, 1, 1);
 
@@ -114,7 +139,7 @@ public class EditOperationController {
         gridPane.add(personLabel, 0, 5);
 
         ComboBox personCombox = new ComboBox();
-        categoryCombox.setValue(selectedOperation.getPerson());
+        personCombox.setValue(selectedOperation.getPerson());
         personCombox.setItems(dbQueryService.getPersons());
         personCombox.setPrefHeight(40);
         gridPane.add(personCombox, 1, 5);
@@ -247,7 +272,7 @@ public class EditOperationController {
         Parent root;
         try {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/sample.fxml"));
-            root = (Parent) loader.load();
+            root = loader.load();
             Stage stage = new Stage();
             stage.setTitle("Home Budget");
             stage.setScene(new Scene(root, 800, 500));
@@ -270,23 +295,7 @@ public class EditOperationController {
     }
 
     public void initialize() {
-        if (selectedOperation == null) {
-            showAlert(Alert.AlertType.ERROR, previousWindow, "Editing Error!", "You need to chose any operation");
-            return;
-        }
-        Stage stage = new Stage();
-        stage.setTitle("Add operation");
 
-        // Create the registration form grid pane
-        GridPane gridPane = createEditOperationFormPane();
-        // Add UI controls to the registration form grid pane
-        addUIControls(gridPane);
-        // Create a scene with registration form grid pane as the root node
-        Scene scene = new Scene(gridPane, 800, 500);
-        // Set the scene in primary stage
-        stage.setScene(scene);
-
-        stage.show();
     }
 
 }

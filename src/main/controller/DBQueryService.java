@@ -33,7 +33,7 @@ public class DBQueryService {
         } finally {
             con.close();
         }
-
+        categories.add("");
         return categories;
     }
 
@@ -60,7 +60,7 @@ public class DBQueryService {
         } finally {
             con.close();
         }
-
+        persons.add("");
         return persons;
     }
 

@@ -11,7 +11,6 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
-import javafx.scene.layout.Pane;
 import javafx.stage.Stage;
 import main.DBConnection;
 import main.model.Operation;
@@ -21,7 +20,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
@@ -49,7 +48,6 @@ public class MainViewController {
     public GridPane gridPane;
 
     public Label sumValue;
-    public Button sumButton;
     @FXML
     public TableView<Operation> table;
     @FXML
@@ -70,20 +68,23 @@ public class MainViewController {
     TableColumn<Operation, Boolean> done;
 
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+    private ObservableList<Operation> expens;
 
     public void initialize() {
         FilterController filterController = new FilterController();
-        gridPane = filterController.createFilterOperationFormPane(gridPane);
         filterController.addUIControls(gridPane, this);
         prepareMenuItems();
         prepareTableColumns();
+        gridPane = filterController.createFilterOperationFormPane(gridPane, expens);
         table.getSelectionModel().selectedItemProperty().addListener(new ChangeListener<Operation>() {
             @Override
             public void changed(ObservableValue<? extends Operation> observable, Operation oldValue, Operation newValue) {
                 removeOperation.setDisable(false);
                 addRemoveOperationPopup(removeOperation);
+
             }
         });
+
     }
 
     private void prepareMenuItems() {
@@ -99,12 +100,12 @@ public class MainViewController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/removeOperation.fxml"));
             Stage stage = new Stage();
             try {
-                stage.setScene(new Scene((Pane) loader.load()));
+                stage.setScene(new Scene(loader.load()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            RemoveOperationController controller = loader.<RemoveOperationController>getController();
+            RemoveOperationController controller = loader.getController();
             controller.setPreviousWindow(table.getScene().getWindow());
             controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
 
@@ -116,13 +117,14 @@ public class MainViewController {
             FXMLLoader loader = new FXMLLoader(getClass().getResource("../../resources/fxml/editOperation.fxml"));
             Stage stage = new Stage();
             try {
-                stage.setScene(new Scene((Pane) loader.load()));
+                stage.setScene(new Scene(loader.load()));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            EditOperationController controller = loader.<EditOperationController>getController();
+            EditOperationController controller = loader.getController();
             controller.setPreviousWindow(table.getScene().getWindow());
             controller.setSelectedOperation(table.getSelectionModel().getSelectedItem());
+
         });
     }
 
@@ -131,7 +133,7 @@ public class MainViewController {
             Parent root;
             try {
                 FXMLLoader loader = new FXMLLoader(getClass().getResource(resource));
-                root = (Parent) loader.load();
+                root = loader.load();
 //                Stage stage = new Stage();
 //                stage.setTitle(name);
 //                stage.setScene(new Scene(root, width, height));
@@ -159,26 +161,47 @@ public class MainViewController {
 
 
     private void loadData() {
-        ObservableList<Operation> expens = getExpenses();
+        expens = getExpenses();
         this.table.setItems(expens);
+        setSumValue(expens);
+    }
+
+    public void setSumValue(ObservableList<Operation> expens) {
+        Double sum = 0D;
+        for (Operation operation : expens) {
+            sum += operation.getCost();
+        }
+
+        this.sumValue.setText("Suma: " + sum.toString() + " zł");
     }
 
     private ObservableList<Operation> getExpenses() {
         DBConnection con = new DBConnection();
 
         ObservableList<Operation> expens = FXCollections.observableArrayList();
-//        expens.addAll(isAdded(con));
-        expens.add(createExpense());
-        expens.add(createExpense());
-        expens.add(createExpense());
+        expens.addAll(downloadOperations(con));
         return expens;
     }
 
-    private List<Operation> isAdded(DBConnection con) {
+//    class MyEventHandler implements EventHandler<MouseEvent> {
+//
+//        @Override
+//        public void handle(MouseEvent t) {
+//            TableCell c = (TableCell) t.getSource();
+//            int index = c.getIndex();
+//            System.out.println("id = " + expens.get(index).getId());
+//        }
+//    }
+
+
+    private List<Operation> downloadOperations(DBConnection con) {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String sql = "select * from operation";
-        List<Operation> expens = Collections.emptyList();
+        String sql = "select *, category.name as category_name," +
+                " person.name as person_name from operation " +
+                "LEFT JOIN category on category.id = category_id " +
+                "LEFT JOIN person on person.id = person_id";
+        List<Operation> expens = new ArrayList<>();
 
 
         try {
@@ -187,26 +210,36 @@ public class MainViewController {
 
             while (resultSet.next()) {
                 expens.add(Operation.builder()
-                        .date(resultSet.getDate("date").toString())
+                        .id(resultSet.getInt("id"))
+                        .date(resultSet.getString("date"))
                         .product(resultSet.getString("product"))
+                        .amount(resultSet.getInt("amount"))
+                        .category(resultSet.getString("category_name"))
+                        .person(resultSet.getString("person_name"))
+                        .cost(resultSet.getDouble("cost"))
+                        .description(resultSet.getString("description"))
+                        .done(resultSet.getBoolean("done"))
                         .build());
             }
+            return expens;
         } catch (SQLException e) {
             e.printStackTrace();
+            expens.add(createExpense());
+        } finally {
+            return expens;
         }
 
-        return expens;
     }
 
     private Operation createExpense() {
         return Operation.builder()
                 .date(formatter.format(new Date()))
-                .product("masło")
-                .amount(2)
-                .category("Shopping")
-                .person("Maciej")
-                .cost(9.5)
-                .description("")
+                .product("ERR")
+                .amount(99999999)
+                .category("ERR")
+                .person("ERR")
+                .cost(999999D)
+                .description("ERR")
                 .done(Boolean.TRUE)
                 .build();
     }
