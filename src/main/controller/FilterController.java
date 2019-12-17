@@ -22,7 +22,7 @@ import java.sql.SQLException;
 public class FilterController {
     DBQueryService dbQueryService = new DBQueryService();
 
-    GridPane createAddOperationFormPane(GridPane gridPane) {
+    GridPane createFilterOperationFormPane(GridPane gridPane) {
         // Position the pane at the center of the screen, both vertically and horizontally
         gridPane.setAlignment(Pos.CENTER);
 

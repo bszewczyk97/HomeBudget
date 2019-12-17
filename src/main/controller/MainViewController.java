@@ -8,10 +8,7 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
-import javafx.scene.control.MenuBar;
-import javafx.scene.control.MenuItem;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableView;
+import javafx.scene.control.*;
 import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Pane;
@@ -50,6 +47,9 @@ public class MainViewController {
 
     public MenuBar menubar;
     public GridPane gridPane;
+
+    public Label sumValue;
+    public Button sumButton;
     @FXML
     public TableView<Operation> table;
     @FXML
@@ -73,7 +73,7 @@ public class MainViewController {
 
     public void initialize() {
         FilterController filterController = new FilterController();
-        gridPane = filterController.createAddOperationFormPane(gridPane);
+        gridPane = filterController.createFilterOperationFormPane(gridPane);
         filterController.addUIControls(gridPane, this);
         prepareMenuItems();
         prepareTableColumns();
@@ -167,28 +167,27 @@ public class MainViewController {
         DBConnection con = new DBConnection();
 
         ObservableList<Operation> expens = FXCollections.observableArrayList();
-//        expens.addAll(isAdded("chleb", con));
+//        expens.addAll(isAdded(con));
         expens.add(createExpense());
         expens.add(createExpense());
         expens.add(createExpense());
         return expens;
     }
 
-    private List<Operation> isAdded(String product, DBConnection con) {
+    private List<Operation> isAdded(DBConnection con) {
         PreparedStatement preparedStatement = null;
         ResultSet resultSet = null;
-        String sql = "select * from operation where what=?";
+        String sql = "select * from operation";
         List<Operation> expens = Collections.emptyList();
 
 
         try {
             preparedStatement = con.getConn().prepareStatement(sql);
-            preparedStatement.setString(1, product);
             resultSet = preparedStatement.executeQuery();
 
             while (resultSet.next()) {
                 expens.add(Operation.builder()
-                        .date(resultSet.getDate("data").toString())
+                        .date(resultSet.getDate("date").toString())
                         .product(resultSet.getString("product"))
                         .build());
             }
